@@ -37,7 +37,7 @@ makeScale=(data)->
 	range = for key,value of data
 		getValue(value)
 	quant.domain(range)
-	quant.range([0..10])
+	quant.range([0..8])
 	quant
 
 result = (err,[topo,dem])->
@@ -46,12 +46,12 @@ result = (err,[topo,dem])->
 	for key, value of dem
 		dem[key.toUpperCase()]=value
 	svg.append("g").attr("transform","scale(1)translate(1,1)").attr("class", "city")
-	.attr("class","Spectral")
+	.attr("class","RdBu")
 	.selectAll("path")
 	.data(topojson.feature(topo, topo.objects.TOWNS).features)
 	.enter().append("path")
 	.attr("class", (d) ->
-		  "q#{10-scale(getValue(dem[d.properties.name]))}-11 #{d.properties.name}"
+		  "q#{8-scale(getValue(dem[d.properties.name]))}-9 #{d.properties.name}"
 	).attr("d", path).append("title").text((d)->
 		"#{getValue(dem[d.properties.name]).toFixed(2)}%"
 	)
