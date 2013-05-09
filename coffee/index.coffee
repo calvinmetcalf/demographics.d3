@@ -56,6 +56,6 @@ result = (err,[topo,dem])->
 		"#{getValue(dem[d.properties.name]).toFixed(2)}%"
 	)
 	true
-queue().defer(d3.json,"/json/ma.topo.json").defer(d3.json,"/json/demographics.json").awaitAll(result)
+queue().defer(d3.json,"json/ma.topo.json").defer(d3.json,"json/demographics.json").awaitAll(result)
 $('.mapSelect').on 'change', ()->
 	result undefined,dat
