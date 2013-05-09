@@ -33,12 +33,22 @@ getValue = (value)->
 	endVal = value[$('#selStat').val()][$('#selEnd').val()]
 	((endVal-startVal)/startVal)*100
 makeScale=(data)->
-	quant = d3.scale.quantile()
-	range = for key,value of data
+	values = for key,value of data
 		getValue(value)
-	quant.domain(range)
-	quant.range([0..8])
-	quant
+	values = values
+	values.sort d3.ascending
+	cutoff = d3.bisectLeft(values,0)
+	nQuant = d3.scale.quantile()
+	nQuant.domain values.slice(0,cutoff)
+	nQuant.range [8..1]
+	pQuant = d3.scale.quantile()
+	pQuant.domain values.slice(cutoff)
+	pQuant.range [1..8]
+	(d)->
+		switch
+			when d>0 then "Blues q#{pQuant(d)}-9"
+			when d<0 then "Reds q#{nQuant(d)}-9"
+			else ""
 
 result = (err,[topo,dem])->
 	dat=[topo,dem]
@@ -46,12 +56,11 @@ result = (err,[topo,dem])->
 	for key, value of dem
 		dem[key.toUpperCase()]=value
 	svg.append("g").attr("transform","scale(1)translate(1,1)").attr("class", "city")
-	.attr("class","RdBu")
 	.selectAll("path")
 	.data(topojson.feature(topo, topo.objects.TOWNS).features)
 	.enter().append("path")
 	.attr("class", (d) ->
-		  "q#{8-scale(getValue(dem[d.properties.name]))}-9 #{d.properties.name}"
+		  "#{scale(getValue(dem[d.properties.name]))} #{d.properties.name}"
 	).attr("d", path).append("title").text((d)->
 		"#{getValue(dem[d.properties.name]).toFixed(2)}%"
 	)
