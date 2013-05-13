@@ -1,5 +1,5 @@
 width = 960
-height=700
+height=800
 options =
 	stat : [{name:'Population',value:'pop'},{name:'House Holds',value:'hh'},{name:'Employment',value:'emp'}]
 	start : ['2000','2010','2017','2020','2025','2030']
@@ -23,15 +23,16 @@ template = Mustache.compile """
 """
 $("#selector").html template(options)
 svg = d3.select("#maincontent").append("svg").attr("width", width).attr("height", height)
-projection = d3.geo.albers().scale(20000).center([0, 42.2]).rotate([71.8,0])
-path = d3.geo.path().projection(projection)
+#projection = d3.geo.albers().scale(20000).center([0, 42.2]).rotate([71.8,0])
+path = d3.geo.path().projection(null)
 dat=[]
 getValue = (value)->
-	return unless value
+	return 0 unless value
 	startVal=value[$('#selStat').val()][$('#selStart').val()]
 	return 0 if startVal == 0
 	endVal = value[$('#selStat').val()][$('#selEnd').val()]
 	((endVal-startVal)/startVal)*100
+
 makeScale=(data)->
 	values = for key,value of data
 		getValue(value)
@@ -57,14 +58,15 @@ result = (err,[topo,dem])->
 		dem[key.toUpperCase()]=value
 	svg.append("g").attr("transform","scale(1)translate(1,1)").attr("class", "city")
 	.selectAll("path")
-	.data(topojson.feature(topo, topo.objects.TOWNS).features)
+	.data(topojson.feature(topo, topo.objects.towns).features)
 	.enter().append("path")
 	.attr("class", (d) ->
-		  "#{scale(getValue(dem[d.properties.name]))} #{d.properties.name}"
+		console.log d
+		"#{scale(getValue(dem[d.properties.id]))}"
 	).attr("d", path).append("title").text((d)->
-		"#{getValue(dem[d.properties.name]).toFixed(2)}%"
+		"#{dem[d.properties.id].name} is #{getValue(dem[d.properties.id]).toFixed(2)}%"
 	)
 	true
-queue().defer(d3.json,"json/ma.topo.json").defer(d3.json,"json/demographics.json").awaitAll(result)
+queue().defer(d3.json,"json/ma.json").defer(d3.json,"json/demographics.json").awaitAll(result)
 $('.mapSelect').on 'change', ()->
 	result undefined,dat
